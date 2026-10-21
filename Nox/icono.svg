@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Icono de Nox: dos ojos. El izquierdo de Nox (a la derecha de quien mira) es el
+       que cambia de forma con sus emociones; aca, un arco contento. -->
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141925"/>
+      <stop offset="1" stop-color="#0A0C10"/>
+    </linearGradient>
+    <filter id="brillo" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7" result="difuso"/>
+      <feMerge>
+        <feMergeNode in="difuso"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#fondo)"
+        stroke="#00b7ff" stroke-opacity="0.35" stroke-width="3"/>
+  <g filter="url(#brillo)">
+    <!-- ojo derecho de Nox -->
+    <ellipse cx="90" cy="128" rx="19" ry="29" fill="#00b7ff"/>
+    <!-- ojo izquierdo de Nox, el expresivo -->
+    <path d="M 144 142 Q 166 100 188 142" fill="none" stroke="#00b7ff"
+          stroke-width="13" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+# Personal de cada maquina: no se comparte.
+openrouter.key
+memoria.db
+memoria.db-*
+config_local.json
+programas.json
+PENDIENTES_BOVEDA.md
+mcp_servidores.json
+
+# Credenciales y configuracion local
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Se descargan con instalar.sh / instalar.bat
+voces/*.onnx
+voces/*.onnx.json
+
+# Entorno y basura de Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+
+# Vectores calculados por evaluar_busqueda.py (se regeneran)
+resultados_busqueda/
+
+# Resultados generados durante evaluaciones
+resultados_modelos/
+
+# PyInstaller builds
+build/
+dist/

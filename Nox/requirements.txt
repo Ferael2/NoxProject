@@ -1,0 +1,15 @@
+# Dependencias de Nox (Linux y Windows). Se instalan con instalar.sh / instalar.bat.
+# Ademas hace falta Ollama (https://ollama.com) con los modelos qwen3:8b y nomic-embed-text.
+customtkinter>=5.2
+numpy
+requests
+ddgs
+beautifulsoup4
+python-docx
+faster-whisper
+sounddevice
+piper-tts
+# Herramientas externas (MCP). Probado con 1.30 y 2.3: Nox funciona con las dos versiones.
+mcp>=1.30
+# Para reducir las capturas de pantalla antes de mostrarselas al modelo de vision.
+pillow
