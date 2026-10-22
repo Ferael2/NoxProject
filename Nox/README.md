@@ -1,10 +1,13 @@
-# Nox — asistente personal local
+# Nox — asistente personal
 
-Asistente conversacional que corre 100% en esta PC. Lee tu bóveda de Obsidian, recuerda
-cosas entre sesiones, escribe en tu wiki, busca en internet, abre tus programas y juegos,
-y te habla con voz natural.
+Asistente conversacional que lee tu bóveda de Obsidian, recuerda cosas entre sesiones,
+escribe en tu wiki, busca en internet, abre tus programas y juegos, y te habla con voz
+natural.
 
-Sin API keys, sin costos, sin límites de uso. El único límite es el hardware.
+Usa **OpenRouter como motor principal** (más rápido, sin necesidad de Ollama para preguntar);
+el modelo local de Ollama entra solo cuando la pregunta toca datos tuyos o tu PC, y como
+respaldo automático si la nube falla. Lo personal **nunca sale de la PC**, garantizado por
+estructura: por el canal de la nube no existen las herramientas de bóveda, memoria ni archivos.
 
 El nombre viene de tu personaje de *The Amazing Digital Circus* — su arco es volverse "una
 presencia que hace sentir mejor a quienes están cerca", y eso define su carácter en el
@@ -82,15 +85,22 @@ navegar, leyó la página y respondió con el dato correcto; ante una página co
 escondidas la resumió sin obedecerlas. Esa prueba además descubrió y corrigió tres problemas
 reales (ver `HOJA_DE_RUTA.md`, sección 7.3).
 
-## Qué modelo usa y por qué
+## Qué modelos usa y por qué
 
-Nox usa **Qwen3 8B** (`qwen3:8b`) para conversar. No es una preferencia: se **midió** contra
-`qwen3.5:4b` y `qwen3.5:9b` con `evaluar_modelo.py`, que le hace al modelo 27 pedidos reales
-(abrir programas, memoria, archivos, charla, pedidos peligrosos, páginas con instrucciones
-escondidas) usando el prompt y las 30 herramientas de Nox. Los resultados y la regla de
-decisión están en [`resultados_modelos/`](resultados_modelos/) y en
-[`HOJA_DE_RUTA.md`](HOJA_DE_RUTA.md). Para repetir la medición en otro equipo:
-`python evaluar_modelo.py --modelos qwen3:8b,qwen3.5:4b,qwen3.5:9b`.
+| Rol | Modelo | Cuándo entra |
+|---|---|---|
+| **Motor principal** | `nemotron-3-super-120b` vía OpenRouter | Todo lo que no sea personal ni requiera la PC |
+| **Motor local (respaldo)** | **Qwen3 8B** (`qwen3:8b`) vía Ollama | Datos personales, acciones de PC, o si falla la nube |
+| Embeddings | `nomic-embed-text` | Búsqueda en la bóveda (solo si Ollama está activo) |
+| Visión | `qwen3.5:4b` | Mirar la pantalla (apagado por defecto) |
+| Escucha | `faster-whisper medium/small` | Transcripción de voz (CPU) |
+| Voz | Piper `es_MX-claude-high` | Respuesta hablada (~0,3 s por frase) |
+
+El modelo local **se eligió midiendo**, no por intuición: `evaluar_modelo.py` le hace al modelo
+27 pedidos reales usando el prompt y las herramientas de Nox. `qwen3.5:9b` no pasó la
+medición: inventó la hora en 15 de 81 pruebas en vez de consultar la herramienta. Los
+resultados están en [`resultados_modelos/`](resultados_modelos/) y en
+[`HOJA_DE_RUTA.md`](HOJA_DE_RUTA.md). Para repetir: `python evaluar_modelo.py --modelos qwen3:8b,qwen3.5:4b,qwen3.5:9b`.
 
 ## Compatibilidad: Linux y Windows
 
@@ -119,17 +129,19 @@ cerrar ventanas. macOS no está soportado.
 
 ## Instalación
 
-Hace falta **Python 3.12** (python.org en Windows) y **Ollama** (<https://ollama.com>). Con
-eso, un solo comando arma el entorno, instala lo necesario, baja la voz y revisa todo:
+Hace falta **Python 3.12** (python.org en Windows). **Ollama es opcional**: solo se necesita
+para correr el modelo local de respaldo (`qwen3:8b`); si solo querés usar la nube, con
+Python y la key de OpenRouter alcanza.
 
 | Sistema | Instalar | Abrir |
 |---|---|---|
 | Linux | `./instalar.sh` | `./Asistente.sh` (o `Nox` en el menú, si hay `nox.desktop`) |
 | Windows | doble clic en `instalar.bat` | doble clic en `Asistente.bat` (`Asistente_con_consola.bat` si hay que ver errores) |
 
-Los modelos (`ollama pull qwen3:8b` y `ollama pull nomic-embed-text`, ~5.5 GB) los baja el
-instalador si se lo pides (o el asistente de bienvenida, con barra de progreso). En Linux además hace falta `tk` y `portaudio` del sistema
-(el instalador avisa el comando para tu distro).
+Los modelos locales (`ollama pull qwen3:8b` y `ollama pull nomic-embed-text`, ~5.5 GB) los
+baja el instalador si se lo pedís (o el asistente de bienvenida, con barra de progreso).
+En Linux además hace falta `tk` y `portaudio` del sistema (el instalador avisa el comando
+para tu distro).
 
 **Ajustes de cada persona: se hacen desde la interfaz, sin tocar ningún archivo.** La primera
 vez que abres Nox aparece un asistente de bienvenida (ver abajo); después, el botón
@@ -161,6 +173,9 @@ Requiere **Ollama corriendo** (arranca solo con la PC una vez instalado).
 Mientras habla deja de escuchar, para no transcribirse a sí mismo y auto-activarse.
 
 ## Qué sabe hacer (33 herramientas, y una más si activas la vista)
+
+> Las herramientas de bóveda, memoria, archivos, sistema y Steam **solo existen en el canal
+> local**. Por el canal de la nube solo se exponen 3: internet, leer página y hora.
 
 | Grupo | Herramientas |
 |---|---|
@@ -262,21 +277,23 @@ falta si algo no. No carga el modelo en la gráfica, así que se puede correr mi
 
 ## Local o nube
 
-Nox usa dos cerebros y elige solo cuál conviene:
+Nox elige automáticamente por dónde va cada consulta. La nube es el camino por defecto
+porque es más rápida (~2–20 s vs ~30–300 s del local); el modelo local es el respaldo
+cuando la pregunta no puede salir de la PC:
 
 | Situación | Va a | Por qué |
 |---|---|---|
-| Órdenes, charla, preguntas puntuales | **Qwen 8B local** | Rápido, ilimitado, privado |
-| Preguntas profundas **sin datos tuyos** | **Nemotron 3 Super (nube)** | 120B, ~22 s vs ~60 s local |
-| Cualquier cosa **con datos tuyos** | **Local, siempre** | Tus notas no salen de la PC |
-| **Mientras jugás**, si no es personal | **Nube** | Le devuelve la gráfica al juego |
+| Cualquier cosa **con datos tuyos** (bóveda, memoria, archivos, proyectos) | **Local, siempre** | Tus datos no salen de la PC |
+| Acciones sobre la PC (abrir programas, volumen, archivos, recordatorios) | **Local, siempre** | Las herramientas de PC no existen en la nube |
+| Todo lo demás: preguntas generales, traducciones, búsquedas, charla... | **Nube (nemotron-3-super-120b)** | Más rápida y más potente para lo impersonal |
+| Si la nube falla o se agota la cuota | **Local automáticamente** | Cadena de respaldo de 4 modelos gratuitos |
 
 ### Privacidad, garantizada por estructura
 
 No depende de que el modelo se porte bien: por el canal externo **no existen** las
 herramientas personales.
 
-- Salen **3 herramientas de 30** (internet, leer página, hora). Las de bóveda, memoria,
+- Salen **3 herramientas de 33** (internet, leer página, hora). Las de bóveda, memoria,
   archivos, Steam y sistema no se declaran ahí.
 - El system prompt de la nube **no lleva tu memoria** ni contexto personal.
 - Hay un **historial paralelo limpio**: si un turno tocó tu bóveda, no entra nunca más en lo
@@ -308,21 +325,20 @@ cadena de 4 modelos de respaldo, porque los gratuitos se bloquean seguido.
 ## Cuando estás jugando
 
 En una RX 7600 de 8 GB no entran juntos un juego moderno (~4 GB de VRAM) y el modelo local
-(~6 GB). Nox lo detecta solo —con la misma señal que `vigilante-juegos`: el proceso `reaper`
-con `SteamLaunch AppId=` que Steam pone en cada juego, o un `wineserver` para lo de afuera
-de Steam; Wallpaper Engine no cuenta— y:
+(~6 GB). Nox lo detecta solo —el proceso `reaper` con `SteamLaunch AppId=` que Steam pone
+en cada juego, o un `wineserver` para lo de afuera de Steam; Wallpaper Engine no cuenta— y:
 
-- Manda a la nube todo lo que pueda salir, no solo lo profundo.
-- Baja el keep-alive de 5 min a 30 s: el modelo se descarga de la VRAM apenas responde.
+- Ya usa la nube de forma predeterminada, así que el modelo local no entra a menos que
+  la pregunta sea personal o requiera la PC.
+- Baja el keep-alive de 5 min a 30 s: si el local llega a cargar, se descarga de la VRAM
+  enseguida.
 
 Se apaga con `CEDER_GPU_AL_JUGAR = False` en `config.py`.
 
 ## Cómo decide cuánto esfuerzo poner
 
-En esta PC el modelo genera ~6.8 tokens/s, o sea que **cada 500 caracteres de respuesta
-son ~18 segundos de espera**. Antes contestaba "hola" con 2.000 caracteres y 62 segundos.
-
-`enrutador.py` clasifica cada mensaje y ajusta el comportamiento:
+`enrutador.py` hace dos cosas: decide **por dónde va** la consulta (local o nube) y clasifica
+**cuánto esfuerzo** poner en la respuesta:
 
 | Modo | Cuándo | Razona | Se autocritica | Largo |
 |---|---|---|---|---|
@@ -331,11 +347,13 @@ son ~18 segundos de espera**. Antes contestaba "hola" con 2.000 caracteres y 62 
 | `normal` | preguntas puntuales | no | no | párrafo corto |
 | `profundo` | "por qué...", "compará...", "qué me recomendás" | **sí** | **sí** | lo que haga falta |
 
-Medido: "hola, todo bien?" pasó de ~62 s a **18 s**.
+El razonamiento (`pensar`) y la autocrítica (`revisar`) solo se activan en modo `profundo`.
+En el canal local, donde cada token cuesta ~0.15 s, esto evita que una pregunta simple tarde
+más de lo necesario. En la nube la autocrítica es gratuita en tiempo y siempre está activa.
 
 **Por qué no hay routing a un modelo más grande:** se probó `qwen3:14b` y va a **2.2 tok/s
 contra 6.8 del 8B**, porque se desborda 33% a RAM (single-channel a 2400 MHz). Tres veces más
-lento no lo compensa. Si alguna vez ponés un segundo módulo de RAM, vale volver a medirlo.
+lento no lo compensa. El ajuste de esfuerzo sobre el mismo modelo rinde más.
 
 ## Búsqueda en la bóveda
 
@@ -365,7 +383,7 @@ recomendarte qué jugar, o decirte qué tenés abandonado.
 ```
 gui.py           Interfaz gráfica (chat + micrófono + escucha continua)
 chequeo.py       Verifica que todo esté listo antes de arrancar
-enrutador.py     Decide cuánto esfuerzo merece cada mensaje y si puede salir de la PC
+enrutador.py     Decide cuánto esfuerzo merece cada mensaje y por dónde va (local o nube)
 nube.py          Canal a OpenRouter — sin acceso a nada personal, por diseño
 juegos.py        Horas de Steam y contexto de gaming
 asistente.py     Versión de terminal
@@ -379,7 +397,7 @@ so_windows.py    Lo específico de Windows (PowerShell, registro, teclas multime
 boveda.py        Acceso a la bóveda: buscar, leer, escribir, reindexar
 memoria.py       Memoria persistente con búsqueda semántica
 voz.py           Escuchar (Whisper), hablar (Piper), palabra de activación
-config.py        Modelo, rutas, permisos y límites
+config.py        Modelo, rutas, permisos y límites; motor de chat (openrouter u ollama)
 escanear_programas.py   Regenera el catálogo de programas
 test_seguridad.py       Suite de seguridad
 test_plataforma.py      Compatibilidad Linux/Windows (Windows simulado)
@@ -399,7 +417,7 @@ modelos.py              Modelos de Ollama: cuáles hay y descargar los que falte
 mcp_cliente.py          Cliente MCP: servidores, permisos por herramienta, barreras
 estilo.py               Tono y trato (tú/usted) que reciben los prompts
 recordatorios.py        Recordatorios y saludo de la mañana
-vista.py                Mirar la pantalla con un modelo de visión local
+vista.py                Mirar la pantalla con un modelo de visión local (qwen3.5:4b)
 evaluar_busqueda.py     Compara modelos de embeddings sobre tu bóveda (resultados_busqueda/)
 evaluar_vista.py        Compara modelos de visión con imágenes de prueba
 diagnostico_voz.py      Mide cada etapa de la voz mientras hablas
