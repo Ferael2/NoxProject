@@ -1,0 +1,9 @@
+{
+  "usuario": "Tu nombre",
+  "equipo": "estandar_8gb  (o laptop_rtx4060, o basico)",
+  "boveda": "",
+  "estilo": "(opcional) una regla de trato, ej: Sé breve y directo.",
+  "perfil": "(opcional, solo se usa en local) gustos o contexto que Nox debería conocer.",
+  "modelo_chat": "(opcional) pisa el modelo del perfil, ej: qwen3:4b",
+  "whisper_device": "(opcional) cpu o cuda"
+}

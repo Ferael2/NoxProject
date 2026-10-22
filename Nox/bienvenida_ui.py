@@ -5,6 +5,8 @@ Pregunta, en pocos pasos y sin tocar ningun archivo: como te llamas, como quiere
 hable, que equipo tienes (lo detecta y lo sugiere), y descarga los modelos que falten. Todo se
 guarda con ajustes.py, igual que la ventana de Ajustes, y se puede cambiar despues alli.
 """
+import webbrowser
+
 import customtkinter as ctk
 
 import ajustes
@@ -29,8 +31,8 @@ class AsistenteBienvenida(ctk.CTkToplevel):
         self._sugerido = None
 
         self.title("Bienvenida a Nox")
-        self.geometry("720x700")
-        self.minsize(640, 600)
+        self.geometry("720x820")
+        self.minsize(640, 700)
         self.configure(fg_color=tema.FONDO)
         self.transient(padre)
 
@@ -139,8 +141,41 @@ class AsistenteBienvenida(ctk.CTkToplevel):
         self.t_equipo = ui.parrafo(f, "Mirando tu equipo…", color=tema.TEXTO_SUAVE, ancho=620, pady=(8, 4))
         ui.campo(f, "Perfil")
         ui.menu(f, list(NOMBRES_PERFIL.values()), self.v_equipo.get(), comando=self.v_equipo.set, ancho=360)
+
         if config.MOTOR_CHAT == "openrouter":
-            ui.campo(f, "Modelos de IA", "En modo nube, Nox usa OpenRouter directamente. La descarga de modelos locales es opcional.", ancho=620)
+            import nube
+            ui.campo(f, "Clave de OpenRouter",
+                     "Necesaria para conversar. Es gratuita en openrouter.ai.", ancho=620)
+            if nube.disponible():
+                ctk.CTkLabel(f, text="✓  Clave de OpenRouter configurada.", font=tema.ETIQUETA,
+                             text_color=tema.VERDE, anchor="w").pack(anchor="w", pady=(0, 4))
+            else:
+                fila_k = ctk.CTkFrame(f, fg_color="transparent")
+                fila_k.pack(anchor="w", fill="x", pady=(4, 0))
+                self.e_key = ui.entrada(fila_k, "", placeholder="sk-or-v1-…", ancho=340)
+                self.e_key.pack(side="left")
+                ui.boton(fila_k, "Guardar", self._guardar_key, ancho=100).pack(side="left", padx=(8, 0))
+                self.t_key_estado = ctk.CTkLabel(f, text="", font=tema.ETIQUETA,
+                                                 text_color=tema.TEXTO_TENUE, anchor="w")
+                self.t_key_estado.pack(anchor="w", pady=(3, 0))
+                ctk.CTkLabel(f, text="¿Cómo obtengo una clave? Es gratis:", font=tema.ETIQUETA,
+                             text_color=tema.TEXTO_SUAVE, anchor="w").pack(anchor="w", pady=(10, 2))
+                for instruccion in [
+                    "1.  Ve a openrouter.ai en tu navegador",
+                    "2.  Regístrate con correo o con Google",
+                    "3.  Haz clic en tu avatar → \"API Keys\"",
+                    "4.  Pulsa \"Create key\", dale un nombre y cópiala",
+                    "5.  Pégala en el campo de arriba y pulsa «Guardar»",
+                ]:
+                    ctk.CTkLabel(f, text=instruccion, font=tema.ETIQUETA,
+                                 text_color=tema.TEXTO_TENUE, anchor="w").pack(anchor="w")
+                ui.boton(f, "Abrir openrouter.ai",
+                         lambda: webbrowser.open("https://openrouter.ai/keys"),
+                         ancho=170).pack(anchor="w", pady=(6, 8))
+
+        if config.MOTOR_CHAT == "openrouter":
+            ui.campo(f, "Modelos locales de respaldo",
+                     "Opcionales. Solo necesarios para responder sin conexión o si la nube falla.", ancho=620)
         else:
             ui.campo(f, "Modelos de IA", "Se descargan una sola vez (unos 5,5 GB en total) y se quedan en tu equipo.", ancho=620)
         self.f_modelos = ctk.CTkFrame(f, fg_color="transparent")
@@ -254,14 +289,16 @@ class AsistenteBienvenida(ctk.CTkToplevel):
         pintar()
         ui.en_hilo(self, trabajo, terminado)
 
-    def _guardar_key_paso3(self):
-        if hasattr(self, "e_key"):
-            val = self.e_key.get().strip()
-            if val.startswith("sk-or-"):
-                ajustes.guardar_key(val)
-                self.t_key_estado.configure(text="✓ Clave guardada correctamente.", text_color=tema.VERDE)
-            else:
-                self.t_key_estado.configure(text="La clave debe comenzar con 'sk-or-'.", text_color=tema.ROJO)
+    def _guardar_key(self):
+        """Guarda la clave de OpenRouter introducida en self.e_key (usada en paso 2 y 3)."""
+        if not hasattr(self, "e_key") or not hasattr(self, "t_key_estado"):
+            return
+        val = self.e_key.get().strip()
+        try:
+            ajustes.guardar_key(val)
+            self.t_key_estado.configure(text="✓ Clave guardada correctamente.", text_color=tema.VERDE)
+        except AjusteInvalido as e:
+            self.t_key_estado.configure(text=str(e), text_color=tema.ROJO)
 
     def _paso_3(self, f):
         ui.titulo(f, "Voz y privacidad")
@@ -281,7 +318,7 @@ class AsistenteBienvenida(ctk.CTkToplevel):
             fila_k.pack(anchor="w", fill="x", pady=(6, 2))
             self.e_key = ui.entrada(fila_k, "", placeholder="Pega tu clave sk-or-v1-...", ancho=380)
             self.e_key.pack_configure(side="left")
-            ui.boton(fila_k, "Guardar clave", self._guardar_key_paso3, ancho=120, lado="left").pack(side="left", padx=(8, 0))
+            ui.boton(fila_k, "Guardar clave", self._guardar_key, ancho=120, lado="left").pack(side="left", padx=(8, 0))
             self.t_key_estado = ctk.CTkLabel(f, text="Se necesita una clave de OpenRouter (gratuita en openrouter.ai) para conversar.",
                                               font=tema.ETIQUETA, text_color=tema.TEXTO_TENUE)
             self.t_key_estado.pack(anchor="w")
@@ -310,11 +347,22 @@ class AsistenteBienvenida(ctk.CTkToplevel):
             self.v_usuario.set(self.e_usuario.get().strip() or config.USUARIO)
         elif self.paso == 1:
             self.v_estilo = ui.leer_caja(self.c_estilo)
+        elif self.paso == 2:
+            if hasattr(self, "e_key") and hasattr(self, "t_key_estado"):
+                val = self.e_key.get().strip()
+                try:
+                    if val:
+                        ajustes.guardar_key(val)
+                except AjusteInvalido:
+                    pass  # el usuario verá el error si pulsa «Guardar» antes de avanzar
         elif self.paso == 3:
             if hasattr(self, "e_key"):
                 val = self.e_key.get().strip()
-                if val.startswith("sk-or-"):
-                    ajustes.guardar_key(val)
+                try:
+                    if val:
+                        ajustes.guardar_key(val)
+                except AjusteInvalido:
+                    pass
 
     def _siguiente(self):
         if self._descargando:
@@ -359,8 +407,9 @@ class AsistenteBienvenida(ctk.CTkToplevel):
         """Usar los valores por defecto y no volver a preguntar; todo queda en Ajustes."""
         try:
             ajustes.guardar({"bienvenida_hecha": True})
-        except (AjusteInvalido, OSError):
-            pass
+        except (AjusteInvalido, OSError) as e:
+            self.aviso.configure(text=f"No pude guardar tus preferencias: {e}")
+            return
         self._terminado = True
         self._cerrar()
         self.al_terminar()

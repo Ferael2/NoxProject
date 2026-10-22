@@ -71,6 +71,11 @@ propias instrucciones), qué equipo tienes (lo detecta y te sugiere un perfil) y
 modelo de IA, lo descarga con una barra de progreso. Todo se puede cambiar después en el botón
 **⚙ Ajustes**.
 
+El `.exe` guarda tus preferencias en `%APPDATA%\Nox\config_local.json`, una carpeta personal
+que sigue siendo escribible aunque el programa esté instalado en una ubicación protegida. Si
+ya tenías preferencias en `config_local.json` junto al `.exe`, Nox las conserva y las usa; la
+próxima vez que guardes desde **Ajustes** quedan en la carpeta personal.
+
 ## Elegir el perfil de tu equipo
 
 Nox trae tres perfiles que fijan el modelo de IA, el contexto y dónde corre Whisper. El

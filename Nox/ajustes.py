@@ -7,8 +7,9 @@ que escribe la persona, guarda el archivo de forma segura y le avisa a config.py
 aplique los cambios al momento.
 
 Que vive aca y que no:
-  - config_local.json  → ajustes de la persona (nombre, tono, equipo, voz...). Lo escribe este
-                         modulo. Se puede seguir editando a mano.
+  - config_local.json  → ajustes de la persona (nombre, tono, equipo, voz...). El .exe de
+                         Windows los guarda en AppData; tambien lee el archivo antiguo junto
+                         al ejecutable si aun no existe el de AppData.
   - openrouter.key     → la clave de la nube. Un archivo aparte, nunca dentro de los ajustes.
   - mcp_servidores.json → herramientas externas. Lo gestiona mcp_cliente.py.
 """
@@ -22,7 +23,7 @@ from pathlib import Path
 import config
 import plataforma
 
-ARCHIVO = config.PROYECTO / "config_local.json"
+ARCHIVO = config.archivo_ajustes()
 
 WHISPER_MODELOS = ("tiny", "base", "small", "medium", "large-v3")
 WHISPER_DISPOSITIVOS = ("cpu", "cuda")
@@ -36,10 +37,20 @@ class AjusteInvalido(ValueError):
 
 # --- Leer y validar ---
 
+def _archivo_para_leer() -> Path:
+    """Usa el archivo persistente y, si falta, lee los ajustes antiguos junto al programa."""
+    if ARCHIVO.exists():
+        return ARCHIVO
+    anterior = config.PROYECTO / "config_local.json"
+    if anterior != ARCHIVO and anterior.exists():
+        return anterior
+    return ARCHIVO
+
+
 def cargar() -> dict:
     """Lo que hay guardado ahora (vacio si no hay archivo o esta roto)."""
     try:
-        datos = json.loads(ARCHIVO.read_text(encoding="utf-8"))
+        datos = json.loads(_archivo_para_leer().read_text(encoding="utf-8"))
         return datos if isinstance(datos, dict) else {}
     except (OSError, ValueError):
         return {}

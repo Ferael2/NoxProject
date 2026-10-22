@@ -192,6 +192,24 @@ def _recorrer(w):
         yield from _recorrer(h)
 
 
+print("\n=== Ajustes: modelos locales opcionales ===")
+av._ir_a("equipo")
+av._dibujar_modelos(True, ([config.MODELO_CHAT, config.MODELO_EMBED], [], True))
+textos_modelos = [w.cget("text") for w in _recorrer(av.contenido) if isinstance(w, ctk.CTkLabel)]
+check("OpenRouter identifica los modelos de Ollama como respaldo",
+      config.MOTOR_CHAT != "openrouter" or any("Modelos locales de respaldo" in t for t in textos_modelos))
+check("el modelo de chat se describe para preguntas privadas y como respaldo",
+      config.MOTOR_CHAT != "openrouter" or any("consultas privadas" in t and "respaldo si falla la nube" in t
+                                               for t in textos_modelos))
+check("nomic se describe como modelo de búsqueda de la bóveda",
+      any("búsqueda semántica de la bóveda" in t for t in textos_modelos))
+check("la descarga aclara que los modelos son opcionales",
+      config.MOTOR_CHAT != "openrouter" or "modelos locales" in av._b_descargar.cget("text"))
+av._dibujar_modelos(True, ([config.MODELO_CHAT, config.MODELO_EMBED], [], False))
+texto_ollama = " ".join(w.cget("text") for w in _recorrer(av.f_modelos) if isinstance(w, ctk.CTkLabel))
+check("Ollama apagado no se presenta como requisito para OpenRouter",
+      config.MOTOR_CHAT != "openrouter" or "OpenRouter es el motor principal" in texto_ollama)
+
 etiquetas = [w.cget("text") for w in _recorrer(av.f_externas) if isinstance(w, ctk.CTkLabel)]
 check("ve las herramientas del servidor", any("sumar" in t for t in etiquetas) and any("eco" in t for t in etiquetas))
 check("todas nacen bloqueadas", all(h["politica"] == "bloquear" for h in adm.estado_servidores()[0]["herramientas"]))
@@ -319,6 +337,12 @@ check("cerrarla a la mitad NO la marca como hecha (se vuelve a ofrecer)", ajuste
 w3 = oculta(bienvenida_ui.AsistenteBienvenida(raiz, al_terminar=lambda: None))
 w3._saltar()
 check("«Configurar después» la marca como hecha, con los valores por defecto", not ajustes.necesita_bienvenida())
+w4 = oculta(bienvenida_ui.AsistenteBienvenida(raiz))
+with mock.patch.object(ajustes, "guardar", side_effect=OSError("disco lleno")):
+    w4._saltar()
+check("si falla el guardado, avisa y no cierra la bienvenida",
+      not w4._terminado and "disco lleno" in w4.aviso.cget("text"))
+w4._cerrar()
 
 print("\n=== Ventana principal ===")
 import gui

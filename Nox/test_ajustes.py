@@ -82,6 +82,21 @@ check("config.py toma el trato y el tono al instante", config.TRATO == "usted" a
 check("sigue pidiendo la bienvenida hasta que se marque", ajustes.necesita_bienvenida())
 ajustes.guardar({"bienvenida_hecha": True})
 check("marcada la bienvenida, ya no se pide", not ajustes.necesita_bienvenida())
+archivo_usuario = carpeta / "perfil_usuario" / "config_local.json"
+with mock.patch.object(ajustes, "ARCHIVO", archivo_usuario):
+    check("si no existe el archivo nuevo, se reconoce la bienvenida del archivo anterior",
+          not ajustes.necesita_bienvenida())
+    ajustes.guardar({"usuario": "Marta"}, aplicar=False)
+    guardado_nuevo = json.loads(archivo_usuario.read_text(encoding="utf-8"))
+    check("al guardar, conserva los ajustes anteriores y la bienvenida",
+          guardado_nuevo.get("usuario") == "Marta" and guardado_nuevo.get("bienvenida_hecha") is True)
+    check("el archivo nuevo pasa a ser la fuente de ajustes", ajustes.cargar() == guardado_nuevo)
+
+with mock.patch.object(config.sys, "frozen", True, create=True), \
+        mock.patch.object(plataforma, "ES_WINDOWS", True), \
+        mock.patch.dict(os.environ, {"APPDATA": str(carpeta / "appdata")}):
+    check("el .exe de Windows usa la carpeta AppData del usuario",
+          config.archivo_ajustes() == carpeta / "appdata" / "Nox" / "config_local.json")
 
 prompt = nucleo.construir_system_prompt()
 check("el prompt local usa el nombre elegido", "Ana" in prompt)

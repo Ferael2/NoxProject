@@ -1,0 +1,79 @@
+('C:\\Users\\FI\\Desktop\\Proyecto '
+ 'Nox\\NoxProject\\Nox\\build_modelos_actualizados\\Nox\\Nox.pkg',
+ {'BINARY': True,
+  'DATA': True,
+  'EXECUTABLE': True,
+  'EXTENSION': True,
+  'PYMODULE': True,
+  'PYSOURCE': True,
+  'PYZ': False,
+  'SPLASH': True,
+  'SYMLINK': False},
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\build_modelos_actualizados\\Nox\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\build_modelos_actualizados\\Nox\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\build_modelos_actualizados\\Nox\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\build_modelos_actualizados\\Nox\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\build_modelos_actualizados\\Nox\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\build_modelos_actualizados\\Nox\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('pyi_rth_setuptools',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
+   'PYSOURCE'),
+  ('pyi_rth_cryptography_openssl',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks\\pyi_rth_cryptography_openssl.py',
+   'PYSOURCE'),
+  ('pyi_rth_pywintypes',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks\\pyi_rth_pywintypes.py',
+   'PYSOURCE'),
+  ('pyi_rth__tkinter',
+   'C:\\Users\\FI\\Desktop\\Proyecto '
+   'Nox\\NoxProject\\Nox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth__tkinter.py',
+   'PYSOURCE'),
+  ('gui',
+   'C:\\Users\\FI\\Desktop\\Proyecto Nox\\NoxProject\\Nox\\gui.py',
+   'PYSOURCE')],
+ 'python313.dll',
+ True,
+ False,
+ False,
+ [],
+ None,
+ None,
+ None)

@@ -211,11 +211,18 @@ class VentanaAjustes(ctk.CTkToplevel):
         self._sugerido = None
 
         ui.campo(f, "Modelo de conversación",
-                 "Déjalo en automático salvo que quieras probar otro. Los de la lista son los que ya tienes descargados.")
+                 "Déjalo en automático salvo que quieras probar otro. OpenRouter es el motor principal; "
+                 "el modelo local se usa para responder en tu equipo o como respaldo.")
         self.m_modelo = ui.menu(f, [AUTOMATICO], a.get("modelo_chat") or AUTOMATICO, ancho=360)
         ui.en_hilo(self, modelos.instalados, self._llenar_modelos)
 
-        ui.campo(f, "Modelos necesarios", "Nox necesita estos para funcionar. Si falta alguno, se descarga desde aquí.")
+        if config.MOTOR_CHAT == "openrouter":
+            ui.campo(f, "Modelos locales de respaldo",
+                     "OpenRouter es el motor principal. El modelo de conversación responde localmente a consultas "
+                     "privadas o sirve de respaldo si falla la nube; nomic-embed-text se usa para buscar en la bóveda.")
+        else:
+            ui.campo(f, "Modelos necesarios",
+                     "El modo local necesita el modelo de conversación. nomic-embed-text se usa para buscar en la bóveda.")
         self.f_modelos = ctk.CTkFrame(f, fg_color="transparent")
         self.f_modelos.pack(anchor="w", fill="x")
         self._pintar_modelos()
@@ -280,7 +287,7 @@ class VentanaAjustes(ctk.CTkToplevel):
             self.m_modelo.set(actual)
 
     def _pintar_modelos(self):
-        """Lista de modelos necesarios con su estado, y el boton para bajar los que faltan."""
+        """Lista el estado de los modelos locales y permite descargar los que faltan."""
         for w in self.f_modelos.winfo_children():
             w.destroy()
         ui.en_hilo(self, lambda: (modelos.necesarios(), modelos.instalados(), modelos.ollama_activo()),
@@ -293,23 +300,43 @@ class VentanaAjustes(ctk.CTkToplevel):
         for w in self.f_modelos.winfo_children():
             w.destroy()
         if not activo:
-            ctk.CTkLabel(self.f_modelos, text="Ollama no responde. Ábrelo (o corre «ollama serve») y vuelve a mirar.",
-                         font=tema.ETIQUETA, text_color=tema.ROJO, anchor="w").pack(anchor="w")
+            texto = ("Ollama no está activo. OpenRouter es el motor principal; sin Ollama no habrá respuestas "
+                     "locales ni respaldo si la nube falla."
+                     if config.MOTOR_CHAT == "openrouter" else
+                     "Ollama no responde. Ábrelo (o corre «ollama serve») y vuelve a mirar.")
+            ctk.CTkLabel(self.f_modelos, text=texto, font=tema.ETIQUETA,
+                         text_color=tema.TEXTO_SUAVE if config.MOTOR_CHAT == "openrouter" else tema.ROJO,
+                         anchor="w", wraplength=560, justify="left").pack(anchor="w")
             ui.boton(self.f_modelos, "Volver a mirar", self._pintar_modelos, ancho=130).pack(anchor="w", pady=(8, 0))
             return
         faltan = []
+        es_respaldo = config.MOTOR_CHAT == "openrouter"
         for m in necesarios:
             esta = modelos.esta_instalado(m, instalados)
             if not esta:
                 faltan.append(m)
-            ctk.CTkLabel(self.f_modelos, text=f"{'✓' if esta else '✗'}  {m}", font=tema.CUERPO,
-                         text_color=tema.VERDE if esta else tema.AMBAR, anchor="w").pack(anchor="w")
+            if m == config.MODELO_CHAT:
+                uso = "respaldo local si falla la nube" if es_respaldo else "respuestas locales"
+            elif m == config.MODELO_EMBED:
+                uso = "búsqueda semántica de la bóveda (respaldo)"
+            else:
+                uso = "uso local opcional"
+            if esta:
+                icono, color = "✓", tema.VERDE
+            elif es_respaldo:
+                icono, color = "○", tema.TEXTO_TENUE   # no instalado, pero es solo respaldo
+            else:
+                icono, color = "✗", tema.AMBAR          # realmente falta algo necesario
+            ctk.CTkLabel(self.f_modelos, text=f"{icono}  {m} — {uso}", font=tema.CUERPO,
+                         text_color=color, anchor="w").pack(anchor="w")
         if faltan:
             self._barra = ui.barra(self.f_modelos)
             self._t_descarga = ctk.CTkLabel(self.f_modelos, text="", font=tema.ETIQUETA,
                                             text_color=tema.TEXTO_TENUE, anchor="w")
-            self._b_descargar = ui.boton(self.f_modelos, f"Descargar lo que falta ({len(faltan)})",
-                                         lambda: self._descargar(faltan), primario=True, ancho=240)
+            etiqueta = "Descargar modelos locales" if config.MOTOR_CHAT == "openrouter" else "Descargar lo que falta"
+            self._b_descargar = ui.boton(self.f_modelos, f"{etiqueta} ({len(faltan)})",
+                                         lambda: self._descargar(faltan), primario=config.MOTOR_CHAT != "openrouter",
+                                         ancho=260)
             self._b_descargar.pack(anchor="w", pady=(10, 0))
 
     def _descargar(self, faltan: list[str]):

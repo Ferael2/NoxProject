@@ -23,14 +23,31 @@ ESCRITORIO = plataforma.carpeta_usuario("DESKTOP", "Desktop")
 
 def _ajustes_locales() -> dict:
     """
-    Ajustes propios de cada maquina, en config_local.json (junto a este archivo). Ese
-    archivo no se comparte: cada persona que reciba el proyecto crea el suyo copiando
-    config_local.json.ejemplo. Si no existe o esta roto, se usan los valores por defecto.
+    Ajustes propios de cada maquina. En el .exe de Windows viven en AppData, que permite
+    guardarlos aunque Nox este instalado en una carpeta de solo lectura. Si no hay archivo
+    ahi, se intenta leer el config_local.json antiguo junto al ejecutable.
     """
     try:
-        return json.loads((PROYECTO / "config_local.json").read_text(encoding="utf-8"))
+        return json.loads(archivo_ajustes_lectura().read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
+
+
+def archivo_ajustes() -> Path:
+    """Ruta persistente de preferencias; usa AppData para el .exe de Windows."""
+    if getattr(sys, "frozen", False) and plataforma.ES_WINDOWS:
+        appdata = Path(os.environ.get("APPDATA") or (Path.home() / "AppData" / "Roaming"))
+        return appdata / "Nox" / "config_local.json"
+    return PROYECTO / "config_local.json"
+
+
+def archivo_ajustes_lectura() -> Path:
+    """Lee el archivo nuevo si existe y, si no, conserva la configuracion junto al .exe."""
+    actual = archivo_ajustes()
+    anterior = PROYECTO / "config_local.json"
+    if actual.exists() or actual == anterior or not anterior.exists():
+        return actual
+    return anterior
 
 
 AJUSTES_LOCALES = _ajustes_locales()
